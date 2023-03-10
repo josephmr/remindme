@@ -1,0 +1,10 @@
+{
+  "dev": {
+    "driver": "pg",
+    "user": { "ENV": "REMIND_DB_USER" },
+    "password": { "ENV": "REMIND_DB_PASSWORD" },
+    "host": { "ENV": "REMIND_DB_HOST" },
+    "port": { "ENV": "REMIND_DB_PORT" },
+    "database": { "ENV": "REMIND_DB_DATABASE" }
+  }
+}
