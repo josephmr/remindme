@@ -1,4 +1,5 @@
 import { Client } from "guilded.js";
+import { WebSocketManager } from "@guildedjs/ws";
 import db from "./db.mjs";
 import { DateTime } from "luxon";
 import hrt from "parse-human-relative-time";
@@ -6,7 +7,14 @@ const parseHumanRelative = hrt(DateTime);
 
 const client = new Client({
   token: process.env.REMIND_BOT_TOKEN,
-  proxyURL: "foo"
+  rest: {
+    proxyURL: process.env.REMIND_REST_URL
+  }
+});
+// Override default so we can override WS url
+client.ws = new WebSocketManager({
+  token: process.env.REMIND_BOT_TOKEN,
+  proxyURL: process.env.REMIND_WS_URL
 });
 
 const COMMAND_RE = /!(?:remind(?:me)?)(?:$|\s)(.*)/;

@@ -35,7 +35,7 @@
     "@guildedjs/rest" "3.0.0"
     form-data "^4.0.0"
 
-"@guildedjs/ws@1.6.0":
+"@guildedjs/ws@1.6.0", "@guildedjs/ws@^1.6.0":
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/@guildedjs/ws/-/ws-1.6.0.tgz#f8dff8d2788b51af395308cf26e06185760bc646"
   integrity sha512-4HyW0kmIb50zrMJKu8rTmWGFao3y+PAS2CPijZykc6yKgXpAH68kb5595MRo7Qd7sCdHib+gxYKkqOzepcMn1w==
