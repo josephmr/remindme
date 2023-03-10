@@ -41,16 +41,24 @@ remind();
 
 client.on("ready", () => console.log("Bot is logged in"));
 client.on("messageCreated", async message => {
-  const match = message.content.match(COMMAND_RE);
-  if (!match) {
+  let relativeTimeStr;
+  if (message.content.includes(`@${client.user.name}`)) {
+    const content = message.content.replace(`@${client.user.name}`, "").trim();
+    const match = content.match(COMMAND_RE);
+    relativeTimeStr = match ? match[1] : content;
+  } else {
+    const match = message.content.match(COMMAND_RE);
+    relativeTimeStr = match ? match[1] : undefined;
+  }
+
+  if (!relativeTimeStr) {
     return;
   }
 
-  const rest = match[1];
   const now = DateTime.utc();
   let then;
   try {
-    then = parseHumanRelative(rest, now);
+    then = parseHumanRelative(relativeTimeStr, now);
   } catch (error) {
     console.error("failed to parse relative time", message.content);
     await message.reply({
