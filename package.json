@@ -5,7 +5,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node -r dotenv/config index.mjs"
+    "dev": "node -r dotenv/config index.mjs",
+    "start": "node index.mjs"
   },
   "dependencies": {
     "@guildedjs/ws": "^1.6.0",
