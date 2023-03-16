@@ -21,20 +21,24 @@ client.ws = new WebSocketManager({
 const COMMAND_PARSE = /(?:^|\n)(?:!remindme|@remindme)[\r\t\f\v ]+([^\n]*)/;
 
 async function remind() {
-  const reminders = await db.getActiveReminders();
-  const messages = reminders.map(async reminder => {
-    await client.messages.send(reminder.channel_id, {
-      isPrivate: true,
-      replyMessageIds: [reminder.message_id],
-      content: "^ consider yourself reminded"
+  try {
+    const reminders = await db.getActiveReminders();
+    const messages = reminders.map(async reminder => {
+      await client.messages.send(reminder.channel_id, {
+        isPrivate: true,
+        replyMessageIds: [reminder.message_id],
+        content: "^ consider yourself reminded"
+      });
+      return db.markReminded({ id: reminder.id });
     });
-    return db.markReminded({ id: reminder.id });
-  });
-  const settled = await Promise.allSettled(messages);
-  for (const result of settled) {
-    if (result.status === "rejected") {
-      console.error("failed when sending a reminder", result);
+    const settled = await Promise.allSettled(messages);
+    for (const result of settled) {
+      if (result.status === "rejected") {
+        console.error("failed when sending a reminder", result);
+      }
     }
+  } catch (error) {
+    console.error("Uncaught Error!", error);
   }
   setTimeout(remind, 5000);
 }
