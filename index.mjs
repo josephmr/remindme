@@ -1,8 +1,9 @@
-import { Client } from "guilded.js";
 import { WebSocketManager } from "@guildedjs/ws";
-import db from "./db.mjs";
+import { Client } from "guilded.js";
 import { DateTime } from "luxon";
 import hrt from "parse-human-relative-time";
+import db from "./db.mjs";
+
 const parseHumanRelative = hrt(DateTime);
 
 const client = new Client({
@@ -17,7 +18,7 @@ client.ws = new WebSocketManager({
   proxyURL: process.env.REMIND_WS_URL
 });
 
-const COMMAND_RE = /!(?:remind(?:me)?)(?:$|\s)(.*)/;
+const COMMAND_PARSE = /(?:^|\n)(?:!remindme|@remindme)[\r\t\f\v ]+([^\n]*)/;
 
 async function remind() {
   const reminders = await db.getActiveReminders();
@@ -39,31 +40,44 @@ async function remind() {
 }
 remind();
 
-client.on("ready", () => console.log("Bot is logged in"));
-client.on("messageCreated", async message => {
-  let relativeTimeStr;
-  if (message.content.includes(`@${client.user.name}`)) {
-    const content = message.content.replace(`@${client.user.name}`, "").trim();
-    const match = content.match(COMMAND_RE);
-    relativeTimeStr = match ? match[1] : content;
-  } else {
-    const match = message.content.match(COMMAND_RE);
-    relativeTimeStr = match ? match[1] : undefined;
+async function settz({ command, message, client }) {
+  const tz = command.replace("settz", "").trim();
+  const isValid = DateTime.now().setZone(tz).isValid;
+  if (!isValid) {
+    await message.reply({
+      isPrivate: true,
+      content: `Sorry, that timezone was not recognized. Please use a valid IANA zone specifier e.g. America/New_York.`
+    });
   }
-
-  if (!relativeTimeStr) {
-    return;
+  let success = false;
+  try {
+    await db.setTimezone({
+      userId: message.createdById,
+      timezone: tz
+    });
+    success = true;
+  } catch (error) {
+    console.error(`Failed to save user's timezone`, error);
   }
+  await message.reply({
+    isPrivate: true,
+    content: success
+      ? `Got it, your timezone has been set to ${tz}`
+      : `Sorry, something went wrong trying to save your timezone. Please try again later and report failures to my creator.`
+  });
+}
 
-  const now = DateTime.utc();
+async function addReminder({ command, message, client }) {
+  const tz = await db.getTimezone({ userId: message.createdById });
+  const now = DateTime.local().setZone(tz);
   let then;
   try {
-    then = parseHumanRelative(relativeTimeStr, now);
+    then = parseHumanRelative(command, now);
   } catch (error) {
     console.error("failed to parse relative time", message.content);
     await message.reply({
       isPrivate: true,
-      content: `Sorry, but I didn't understand. Try phrases like "in 5 minutes" or "tomorrow".`
+      content: `Sorry, but I didn't understand that. Try phrases like "in 5 minutes" or "tomorrow at 2pm".`
     });
     return;
   }
@@ -93,6 +107,46 @@ client.on("messageCreated", async message => {
       suppressMilliseconds: true
     })}`
   });
+}
+
+async function sendHelp({ message, client }) {
+  const name = client.user.name;
+  await message.reply({
+    isPrivate: true,
+    content: `Here's what I can do:
+
+@${name} help: Print this help message.
+@${name} in 5 minutes: Set a reminder for some time in the future.
+@${name} settz America/New_York: Set your timezone so I can better understand absolute times like 2pm.`
+  });
+}
+
+client.on("ready", () => console.log("Bot is logged in"));
+client.on("messageCreated", async message => {
+  try {
+    const match = message.content.match(COMMAND_PARSE);
+    if (!match) {
+      return;
+    }
+    const [_, command] = match;
+    switch (command.split(/\s/)[0]) {
+      case "help":
+        await sendHelp({ client, message });
+        break;
+      case "settz":
+        await settz({ command, message, client });
+        break;
+      default:
+        await addReminder({ command, message, client });
+        break;
+    }
+  } catch (error) {
+    console.error("Uncaught Error!", error);
+    message.reply({
+      isPrivate: true,
+      content: `Sorry, something went wrong. Please try again later and report failures to my creator.`
+    });
+  }
 });
 
 client.login();
