@@ -18,7 +18,12 @@ client.ws = new WebSocketManager({
   proxyURL: process.env.REMIND_WS_URL
 });
 
-const COMMAND_PARSE = /(?:^|\n)(?:!remindme|@remindme)[\r\t\f\v ]+([^\n]*)/;
+let COMMAND_PARSE;
+function initCommandParse(client) {
+  COMMAND_PARSE = new RegExp(
+    `(?:^|\n)(?:@${client.user.name})[\r\t\f\v ]+([^\n]*)`
+  );
+}
 
 async function remind() {
   try {
@@ -125,7 +130,10 @@ async function sendHelp({ message, client }) {
   });
 }
 
-client.on("ready", () => console.log("Bot is logged in"));
+client.on("ready", () => {
+  console.log("Bot is logged in");
+  initCommandParse(client);
+});
 client.on("messageCreated", async message => {
   try {
     const match = message.content.match(COMMAND_PARSE);
