@@ -21,7 +21,7 @@ client.ws = new WebSocketManager({
 let COMMAND_PARSE;
 function initCommandParse(client) {
   COMMAND_PARSE = new RegExp(
-    `(?:^|\n)(?:@${client.user.name})[\r\t\f\v ]+([^\n]*)`
+    `(?:^|\n)(?:@${client.user.name})[\r\t\f\v ]+([^\n]*?(?=--|$|\n))`
   );
 }
 
