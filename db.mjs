@@ -46,6 +46,27 @@ const db = {
       [remindAt, userId, serverId, channelId, messageId, message]
     );
   },
+  async insertGhReminder({
+    sha,
+    env,
+    userId,
+    serverId,
+    channelId,
+    messageId,
+    message
+  }) {
+    await pool.query(
+      "INSERT INTO gh_reminders (sha, env, user_id, server_id, channel_id, message_id, message) VALUES($1, $2, $3, $4, $5, $6, $7)",
+      [sha, env, userId, serverId, channelId, messageId, message]
+    );
+  },
+  async getActiveGhReminders({ env, sha }) {
+    const res = await pool.query(
+      "SELECT * FROM gh_reminders WHERE reminded = false AND env = $1 AND (last_sha != $2 OR last_sha IS NULL)",
+      [env, sha]
+    );
+    return res.rows;
+  },
   async getActiveReminders() {
     const res = await pool.query(
       "SELECT * FROM reminders WHERE reminded = false AND remind_at < $1",
@@ -56,6 +77,12 @@ const db = {
   async markReminded({ id }) {
     return await pool.query(
       `UPDATE reminders SET reminded = true WHERE id = $1`,
+      [id]
+    );
+  },
+  async markGhReminded({ id }) {
+    return await pool.query(
+      `UPDATE gh_reminders SET reminded = true WHERE id = $1`,
       [id]
     );
   }

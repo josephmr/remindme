@@ -2,9 +2,15 @@ import { WebSocketManager } from "@guildedjs/ws";
 import { Client } from "guilded.js";
 import { DateTime } from "luxon";
 import hrt from "parse-human-relative-time";
+import * as github from "./github.mjs";
 import db from "./db.mjs";
 
 const parseHumanRelative = hrt(DateTime);
+
+const githubEnabled = process.env.GITHUB_TOKEN;
+if (githubEnabled) {
+  await github.init();
+}
 
 const client = new Client({
   token: process.env.REMIND_BOT_TOKEN,
@@ -25,7 +31,7 @@ function initCommandParse(client) {
   );
 }
 
-async function remind() {
+async function remind(client) {
   try {
     const reminders = await db.getActiveReminders();
     const messages = reminders.map(async reminder => {
@@ -47,7 +53,11 @@ async function remind() {
   }
   setTimeout(remind, 5000);
 }
-remind();
+
+if (githubEnabled) {
+  github.remind(client);
+}
+remind(client);
 
 async function settz({ command, message, client }) {
   const tz = command.replace("settz", "").trim();
@@ -149,6 +159,16 @@ client.on("messageCreated", async message => {
         await settz({ command, message, client });
         break;
       default:
+        if (githubEnabled) {
+          const isHandled = await github.addReminder({
+            command,
+            message,
+            client
+          });
+          if (isHandled) {
+            return;
+          }
+        }
         await addReminder({ command, message, client });
         break;
     }
