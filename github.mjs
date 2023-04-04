@@ -103,8 +103,9 @@ export async function remind(client) {
       continue;
     }
 
+    let reminders;
     try {
-      const reminders = await db.getActiveGhReminders({ env: env.key, sha });
+      reminders = await db.getActiveGhReminders({ env: env.key, sha });
     } catch (error) {
       console.log(error);
       continue;
