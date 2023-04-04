@@ -58,14 +58,27 @@ export async function addReminder({ command, message }) {
       content: `Sorry, failed trying to get Github PR #${pr}`
     });
   }
-  await db.insertGhReminder({
-    sha,
-    env: env,
-    userId: message.createdById,
-    serverId: message.serverId,
-    channelId: message.channelId,
-    messageId: message.id,
-    message: message.content
+  try {
+    await db.insertGhReminder({
+      sha,
+      env: env,
+      userId: message.createdById,
+      serverId: message.serverId,
+      channelId: message.channelId,
+      messageId: message.id,
+      message: message.content
+    });
+  } catch (error) {
+    console.log(error);
+    await message.reply({
+      isPrivate: true,
+      content: `Sorry, something went wrong. Please try again later and report failures to my creator.`
+    });
+    return true;
+  }
+  await message.reply({
+    isPrivate: true,
+    content: `I'll remind you when PR #${pr} is live in ${env}`
   });
   return true;
 }
