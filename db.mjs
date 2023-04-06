@@ -3,11 +3,7 @@ import pkg from "pg";
 const { Pool } = pkg;
 
 const pool = new Pool({
-  host: process.env.REMIND_DB_HOST,
-  user: process.env.REMIND_DB_USER,
-  password: process.env.REMIND_DB_PASSWORD,
-  port: process.env.REMIND_DB_PORT,
-  database: process.env.REMIND_DB_DATABASE,
+  connectionString: process.env.DATABASE_URL,
   max: 20,
   idleTimoutMillis: 30000,
   connectionTimeoutMillis: 2000
