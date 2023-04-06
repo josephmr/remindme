@@ -51,7 +51,7 @@ async function remind(client) {
   } catch (error) {
     console.error("Uncaught Error!", error);
   }
-  setTimeout(remind, 5000);
+  setTimeout(() => remind(client), 5000);
 }
 
 if (githubEnabled) {
