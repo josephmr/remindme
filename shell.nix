@@ -8,6 +8,7 @@ mkShell {
   buildInputs = [
     yarn
     nodejs-16_x
+    postgresql_15
     # tools for node-gyp
     python310
     cmake
