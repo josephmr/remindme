@@ -7,11 +7,20 @@ Guilded bot for adding reminders.
 1. Setup env variables
 
   ```
-  REMIND_DB_USER
-  REMIND_DB_PASSWORD
-  REMIND_DB_HOST
-  REMIND_DB_PORT
+  DATABASE_URL
   REMIND_BOT_TOKEN
+  # Optional: for git environment checking
+  GITHUB_TOKEN
+  GITHUB_CONFIG # of the form:
+    # {
+    #   "owner": string, # github owner
+    #   "repo": string,  # github repo
+    #   "envs": []{      # array of environments
+    #     "key": string,   # name
+    #     "url": string,   # url to GET for environment git sha
+    #     "regex": string  # regex to run against body for git sha
+    #   }
+    # }
   # Optional: for targeting different environment
   REMIND_WS_URL
   REMIND_REST_URL
@@ -23,8 +32,9 @@ Guilded bot for adding reminders.
   npx db-migrate up
   ```
 
-3. Deploy with CapRover or just run `yarn start`
+3. Deploy with Dokku or just run `yarn start`
 
   ```
-  caprover deploy
+  git remote add dokku ...
+  git push dokku
   ```
