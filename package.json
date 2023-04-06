@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "node -r dotenv/config index.mjs",
-    "start": "node index.mjs"
+    "start": "npx db-migrate up && node index.mjs"
   },
   "dependencies": {
     "@guildedjs/ws": "^1.6.0",
