@@ -123,6 +123,7 @@ export async function remind(client) {
       console.log(error);
       continue;
     }
+    let stillPending = [];
     for (const reminder of reminders) {
       try {
         const shouldRemind = await isDeployed({
@@ -130,6 +131,7 @@ export async function remind(client) {
           sha: reminder.sha
         });
         if (!shouldRemind) {
+          stillPending.push(reminder.id)
           continue;
         }
         await client.messages.send(reminder.channel_id, {
@@ -142,6 +144,11 @@ export async function remind(client) {
         console.log(error);
         continue;
       }
+    }
+    try {
+      await db.updateGhReminders({ ids: stillPending, sha });
+    } catch (error) {
+      console.log(error);
     }
   }
 

@@ -81,6 +81,12 @@ const db = {
       `UPDATE gh_reminders SET reminded = true WHERE id = $1`,
       [id]
     );
+  },
+  async updateGhReminders({ ids, sha }) {
+    return await pool.query(
+      `UPDATE gh_reminders SET last_sha = $1 WHERE id = ANY($2)`,
+      [sha, ids]
+    );
   }
 };
 
